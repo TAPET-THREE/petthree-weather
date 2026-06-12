@@ -37,6 +37,20 @@
             padding-bottom: 10px;
         }
 
+        /* 🖼️ ロゴとタイトルを綺麗に横並びにする設定 */
+        .header-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* 🎨 ロゴ画像のサイズ調整（縦幅40pxにしてスマホでも崩れないようにしています） */
+        .brand-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
         h1 {
             margin: 0;
             font-size: 20px;
@@ -99,7 +113,6 @@
         .store-info { width: 25%; }
         .day-column { width: 25%; }
 
-        /* クリックできる店舗名に下線とカーソル風のデザインを適用 */
         .store-click-zone {
             cursor: pointer;
             display: inline-block;
@@ -173,7 +186,6 @@
             font-size: 14px;
         }
 
-        /* 🕒 ポップアップ（モーダル窓）のスタイル */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -193,7 +205,7 @@
             background: white;
             padding: 20px;
             border-radius: 10px;
-            max-width: 800px;
+            max-width: 500px;
             width: 100%;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             position: relative;
@@ -215,7 +227,6 @@
             cursor: pointer;
             color: #a0aec0;
         }
-        .close-btn:hover { color: #4a5568; }
 
         .modal-title {
             font-size: 16px;
@@ -243,7 +254,10 @@
 
 <div class="container">
     <header>
-        <h1>🌤️ PET THREE 天気一覧</h1>
+        <div class="header-logo-area">
+            <img src="logo.png" alt="PET THREE ロゴ" class="brand-logo" onerror="this.style.display='none'">
+            <h1>店舗別 天気一覧</h1>
+        </div>
         <button class="refresh-btn" onclick="fetchAllWeather()">更新</button>
     </header>
 
@@ -262,13 +276,11 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- データ自動挿入 -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
 
-<!-- 🕒 ポップアップ表示用の隠し要素 -->
 <div id="hourlyModal" class="modal-overlay" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <button class="close-btn" onclick="closeModal()">⨉</button>
@@ -283,8 +295,7 @@
                 </tr>
             </thead>
             <tbody id="hourlyTableBody">
-                <!-- ここに時間ごとのデータが入る -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
@@ -317,7 +328,6 @@
         return "曇り";
     };
 
-    // 3日間の概要データを取得
     async function fetch3DayWeather(lat, lon) {
         try {
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo`;
@@ -343,7 +353,6 @@
         }
     }
 
-    // 🕒 クリックされた店舗の時間帯天気を取得してポップアップを開く
     async function showHourlyWeather(index) {
         const store = stores[index];
         document.getElementById('modalTitle').innerText = `🕒 ${store.name.replace('PET THREE ', '')} (今日の時間帯予報)`;
@@ -355,9 +364,7 @@
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${store.lat}&longitude=${store.lon}&hourly=weathercode,temperature_2m,precipitation_probability&timezone=Asia%2FTokyo`;
             const response = await fetch(url);
             const data = await response.json();
-            
             let html = "";
-            // 今日(最初の24時間)から、営業時間を意識して「6時〜21時」の間を3時間おきにピックアップ
             const targetHours = [6, 9, 12, 15, 18, 21];
             
             targetHours.forEach(hour => {
