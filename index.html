@@ -13,8 +13,8 @@
             --border-color: #e2e8f0;
             --rain-bg: #fff5f5;
             --rain-text: #e53e3e;
-            --pop-bg: #ebf8ff; /* 降水確率の背景用の薄い水色 */
-            --pop-text: #2b6cb0; /* 降水確率の文字用の濃い青色 */
+            --pop-bg: #ebf8ff;
+            --pop-text: #2b6cb0;
         }
 
         body {
@@ -186,6 +186,7 @@
             font-size: 14px;
         }
 
+        /* 🕒 ポップアップ全体のグレーの背景 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -197,19 +198,22 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 15px;
-            box-sizing: border-box;
+            padding: 10px;
+            box-sizing: border-box; /* 👈 サイズ計算の崩れを防止 */
         }
 
+        /* 🕒 白いボックス（ここを修正して、中のパーツがはみ出さないようにしました） */
         .modal-content {
             background: white;
-            padding: 20px;
+            padding: 20px 15px;
             border-radius: 10px;
-            max-width: 500px;
+            max-width: 480px;
             width: 100%;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             position: relative;
             animation: fadeIn 0.2s ease-out;
+            box-sizing: border-box; /* 👈 パディングを含めたサイズに固定 */
+            overflow: hidden; /* 👈 万が一のはみ出しもカット */
         }
 
         @keyframes fadeIn {
@@ -226,38 +230,54 @@
             border: none;
             cursor: pointer;
             color: #a0aec0;
+            z-index: 10;
         }
 
         .modal-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             margin-bottom: 15px;
-            padding-right: 20px;
+            padding-right: 25px;
             border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px;
+            padding-bottom: 8px;
+            color: #2d3748;
         }
 
+        /* 🕒 中のテーブルの横幅を100%に強制固定 */
         .hourly-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            table-layout: fixed; /* 👈 列の幅がはみ出るのを強制的に防ぐ */
         }
+
+        /* 🕒 各列の幅の比率をきれいに等分指定 */
         .hourly-table th, .hourly-table td {
-            padding: 10px 8px;
+            padding: 10px 4px;
             text-align: center;
             border-bottom: 1px solid #e2e8f0;
             vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .hourly-table th { background: #f7fafc; }
+        
+        /* 🕒 各列の横幅の割り振りを指定（合計100%） */
+        .hourly-table th:nth-child(1), .hourly-table td:nth-child(1) { width: 20%; } /* 時間 */
+        .hourly-table th:nth-child(2), .hourly-table td:nth-child(2) { width: 30%; } /* 天気 */
+        .hourly-table th:nth-child(3), .hourly-table td:nth-child(3) { width: 22%; } /* 気温 */
+        .hourly-table th:nth-child(4), .hourly-table td:nth-child(4) { width: 28%; } /* 降水確率 */
 
-        /* 🕒 ポップアップ内の降水確率バッジのデザイン */
+        .hourly-table th { background: #f7fafc; color: #4a5568; }
+
         .hourly-pop-badge {
             display: inline-block;
             background-color: var(--pop-bg);
             color: var(--pop-text);
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 4px;
             font-weight: bold;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -287,8 +307,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- データ自動挿入 -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
@@ -307,8 +326,7 @@
                 </tr>
             </thead>
             <tbody id="hourlyTableBody">
-                <!-- データ挿入 -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
@@ -368,9 +386,9 @@
 
     async function showHourlyWeather(index) {
         const store = stores[index];
-        document.getElementById('modalTitle').innerText = `🕒 ${store.name.replace('PET THREE ', '')} (今日の時間帯予報)`;
+        document.getElementById('modalTitle').innerText = `🕒 ${store.name.replace('PET THREE ', '')}`;
         const tableBody = document.getElementById('hourlyTableBody');
-        tableBody.innerHTML = `<tr><td colspan="4">時間帯予報を読み込み中...</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4">読み込み中...</td></tr>`;
         document.getElementById('hourlyModal').style.display = 'flex';
 
         try {
@@ -391,7 +409,6 @@
                         <td><strong>${timeStr}</strong></td>
                         <td>${weather}</td>
                         <td>${temp}</td>
-                        <!-- 📊 ここで降水確率に背景色付きのバッジ（クラス名 hourly-pop-badge）を適用しました -->
                         <td><span class="hourly-pop-badge">${pop}</span></td>
                     </tr>
                 `;
