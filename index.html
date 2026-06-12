@@ -20,7 +20,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
@@ -32,63 +32,59 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border-bottom: 3px solid var(--primary-color);
-            padding-bottom: 15px;
+            padding-bottom: 10px;
         }
 
         h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
             color: #2d3748;
         }
 
         .controls {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .refresh-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background-color: #3182ce;
+            font-size: 14px;
         }
 
         .search-box {
-            padding: 10px 15px;
+            padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 15px;
+            font-size: 14px;
             width: 100%;
-            max-width: 300px;
+            max-width: 250px;
         }
 
         .weather-table-container {
             background: var(--card-bg);
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            overflow: hidden;
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            min-width: 700px;
         }
 
         th, td {
-            padding: 15px;
+            padding: 12px;
             border-bottom: 1px solid var(--border-color);
             vertical-align: top;
         }
@@ -97,21 +93,22 @@
             background-color: #edf2f7;
             font-weight: bold;
             color: #4a5568;
+            font-size: 14px;
         }
 
-        .store-info { width: 22%; }
-        .day-column { width: 26%; }
+        .store-info { width: 25%; }
+        .day-column { width: 25%; }
 
         .store-title {
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 5px;
             color: #1a202c;
         }
 
         .badge {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
@@ -123,7 +120,7 @@
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
-            padding: 10px;
+            padding: 8px;
         }
 
         .weather-card.is-rain {
@@ -132,18 +129,18 @@
         }
 
         .date-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: #718096;
             border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 3px;
-            margin-bottom: 5px;
+            padding-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .weather-text {
             font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 13px;
+            margin-bottom: 4px;
         }
 
         .is-rain .weather-text {
@@ -151,7 +148,7 @@
         }
 
         .weather-details {
-            font-size: 13px;
+            font-size: 12px;
             color: #4a5568;
             display: flex;
             justify-content: space-between;
@@ -162,9 +159,9 @@
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #718096;
-            font-size: 16px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -172,8 +169,8 @@
 
 <div class="container">
     <header>
-        <h1>🗓️ PET THREE 店舗別 3日間天気予報一覧</h1>
-        <button class="refresh-btn" onclick="fetchAllWeather()">情報を更新する</button>
+        <h1>🌤️ PET THREE 天気一覧</h1>
+        <button class="refresh-btn" onclick="fetchAllWeather()">更新</button>
     </header>
 
     <div class="controls">
@@ -191,16 +188,19 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                </tbody>
+                <!-- データ自動挿入 -->
+            </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // 各店舗の緯度・経度を設定（Open-Meteo API用）
+    // 追加店舗を含めた全13店舗のデータ
     const stores = [
         { name: "PET THREE 酒々井プレミアム・アウトレット店", region: "千葉県 印旛", lat: 35.72, lon: 140.29 },
         { name: "PET THREE 三井アウトレットパーク木更津店", region: "千葉県 君津", lat: 35.44, lon: 139.93 },
+        { name: "PET THREE あみプレミアム・アウトレット店", region: "茨城県 竜ヶ崎", lat: 35.98, lon: 140.22 },
+        { name: "PET THREE 那須ガーデンアウトレット店", region: "栃木県 那須", lat: 36.93, lon: 140.02 },
         { name: "PET THREE 三井アウトレットパークマリンピア神戸店", region: "兵庫県 南部", lat: 34.63, lon: 135.05 },
         { name: "PET THREE 三井アウトレットパーク 岡崎店", region: "愛知県 西部", lat: 34.93, lon: 137.17 },
         { name: "PET THREE 三井アウトレットパーク北陸小矢部店", region: "富山県 西部", lat: 36.68, lon: 136.87 },
@@ -212,7 +212,6 @@
         { name: "PET THREE THE OUTLETS KITAKYUSHU店", region: "福岡県 北九州", lat: 33.87, lon: 130.81 }
     ];
 
-    // 海外の主要な無料お天気API（CORS制限がなく、誰でも安全に取得可能）
     async function fetch3DayWeather(lat, lon) {
         try {
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo`;
@@ -222,10 +221,9 @@
             const daily = data.daily;
             const result = [];
 
-            // 天気コードを日本語テキストに変換するマッピング
             const getWeatherText = (code) => {
                 if ([0].includes(code)) return "晴れ";
-                if ([1, 2, 3].includes(code)) return "晴れのち曇 / 曇り";
+                if ([1, 2, 3].includes(code)) return "晴れ/曇";
                 if ([45, 48].includes(code)) return "霧";
                 if ([51, 53, 55, 56, 57].includes(code)) return "小雨";
                 if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "雨";
@@ -247,50 +245,43 @@
                 });
             }
             return result;
-
         } catch (error) {
-            console.error("Fetch error:", error);
             return Array(3).fill({ date: "--/--", weather: "エラー", min: "--", max: "--", pop: "--%" });
         }
     }
 
     async function fetchAllWeather() {
         const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = `<tr><td colspan="4" class="loading">最新の気象データを一括取得中...</td></tr>`;
-
+        tableBody.innerHTML = `<tr><td colspan="4" class="loading">データを取得中...</td></tr>`;
         let htmlBuffer = "";
 
         for (const store of stores) {
             const forecast3Days = await fetch3DayWeather(store.lat, store.lon);
-            
             htmlBuffer += `<tr>`;
             htmlBuffer += `
                 <td class="store-info">
-                    <div class="store-title">${store.name}</div>
+                    <div class="store-title">${store.name.replace('PET THREE ', '')}</div>
                     <span class="badge">${store.region}</span>
                 </td>
             `;
             
             forecast3Days.forEach(day => {
                 const isRain = day.weather.includes("雨") || day.weather.includes("雷") ? "is-rain" : "";
-                
                 htmlBuffer += `
                     <td class="day-column">
                         <div class="weather-card ${isRain}">
                             <div class="date-label">${day.date}</div>
                             <div class="weather-text">${day.weather}</div>
                             <div class="weather-details">
-                                <span>降水: <strong>${day.pop}</strong></span>
-                                <span><span class="temp-high">${day.max}℃</span> / <span class="temp-low">${day.min}℃</span></span>
+                                <span>降水:${day.pop}</span>
+                                <span><span class="temp-high">${day.max}</span>/<span class="temp-low">${day.min}</span></span>
                             </div>
                         </div>
                     </td>
                 `;
             });
-
             htmlBuffer += `</tr>`;
         }
-
         tableBody.innerHTML = htmlBuffer;
     }
 
@@ -304,17 +295,12 @@
             let tdName = tr[i].getElementsByTagName('td')[0];
             if (tdName) {
                 let nameValue = tdName.textContent || tdName.innerText;
-                if (nameValue.toLowerCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
+                tr[i].style.display = nameValue.toLowerCase().indexOf(filter) > -1 ? "" : "none";
             }
         }
     }
 
     window.onload = fetchAllWeather;
 </script>
-
 </body>
 </html>
