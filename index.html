@@ -99,11 +99,20 @@
         .store-info { width: 25%; }
         .day-column { width: 25%; }
 
+        /* クリックできる店舗名に下線とカーソル風のデザインを適用 */
+        .store-click-zone {
+            cursor: pointer;
+            display: inline-block;
+        }
         .store-title {
             font-weight: bold;
             font-size: 14px;
             margin-bottom: 5px;
-            color: #1a202c;
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        .store-title:hover {
+            color: #2b6cb0;
         }
 
         .badge {
@@ -163,6 +172,71 @@
             color: #718096;
             font-size: 14px;
         }
+
+        /* 🕒 ポップアップ（モーダル窓）のスタイル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+        .close-btn:hover { color: #4a5568; }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-right: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .hourly-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .hourly-table th, .hourly-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .hourly-table th { background: #f7fafc; }
     </style>
 </head>
 <body>
@@ -181,7 +255,7 @@
         <table id="weatherTable">
             <thead>
                 <tr>
-                    <th class="store-info">店舗情報</th>
+                    <th class="store-info">店舗情報 (クリックで詳細)</th>
                     <th class="day-column">今日</th>
                     <th class="day-column">明日</th>
                     <th class="day-column">明後日</th>
@@ -194,8 +268,28 @@
     </div>
 </div>
 
+<!-- 🕒 ポップアップ表示用の隠し要素 -->
+<div id="hourlyModal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="close-btn" onclick="closeModal()">⨉</button>
+        <div id="modalTitle" class="modal-title">店舗名（時間帯天気）</div>
+        <table class="hourly-table">
+            <thead>
+                <tr>
+                    <th>時間</th>
+                    <th>天気</th>
+                    <th>気温</th>
+                    <th>降水確率</th>
+                </tr>
+            </thead>
+            <tbody id="hourlyTableBody">
+                <!-- ここに時間ごとのデータが入る -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script>
-    // 追加店舗を含めた全13店舗のデータ
     const stores = [
         { name: "PET THREE 酒々井プレミアム・アウトレット店", region: "千葉県 印旛", lat: 35.72, lon: 140.29 },
         { name: "PET THREE 三井アウトレットパーク木更津店", region: "千葉県 君津", lat: 35.44, lon: 139.93 },
@@ -212,30 +306,29 @@
         { name: "PET THREE THE OUTLETS KITAKYUSHU店", region: "福岡県 北九州", lat: 33.87, lon: 130.81 }
     ];
 
+    const getWeatherText = (code) => {
+        if ([0].includes(code)) return "晴れ";
+        if ([1, 2, 3].includes(code)) return "晴れ/曇";
+        if ([45, 48].includes(code)) return "霧";
+        if ([51, 53, 55, 56, 57].includes(code)) return "小雨";
+        if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "雨";
+        if ([71, 73, 75, 77, 85, 86].includes(code)) return "雪";
+        if ([95, 96, 99].includes(code)) return "雷雨";
+        return "曇り";
+    };
+
+    // 3日間の概要データを取得
     async function fetch3DayWeather(lat, lon) {
         try {
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo`;
             const response = await fetch(url);
             const data = await response.json();
-            
             const daily = data.daily;
             const result = [];
-
-            const getWeatherText = (code) => {
-                if ([0].includes(code)) return "晴れ";
-                if ([1, 2, 3].includes(code)) return "晴れ/曇";
-                if ([45, 48].includes(code)) return "霧";
-                if ([51, 53, 55, 56, 57].includes(code)) return "小雨";
-                if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "雨";
-                if ([71, 73, 75, 77, 85, 86].includes(code)) return "雪";
-                if ([95, 96, 99].includes(code)) return "雷雨";
-                return "曇り";
-            };
 
             for(let i = 0; i < 3; i++) {
                 let dateRaw = new Date(daily.time[i]);
                 let dateStr = `${dateRaw.getMonth() + 1}/${dateRaw.getDate()}`;
-                
                 result.push({
                     date: dateStr,
                     weather: getWeatherText(daily.weathercode[i]),
@@ -250,18 +343,63 @@
         }
     }
 
+    // 🕒 クリックされた店舗の時間帯天気を取得してポップアップを開く
+    async function showHourlyWeather(index) {
+        const store = stores[index];
+        document.getElementById('modalTitle').innerText = `🕒 ${store.name.replace('PET THREE ', '')} (今日の時間帯予報)`;
+        const tableBody = document.getElementById('hourlyTableBody');
+        tableBody.innerHTML = `<tr><td colspan="4">時間帯予報を読み込み中...</td></tr>`;
+        document.getElementById('hourlyModal').style.display = 'flex';
+
+        try {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${store.lat}&longitude=${store.lon}&hourly=weathercode,temperature_2m,precipitation_probability&timezone=Asia%2FTokyo`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            let html = "";
+            // 今日(最初の24時間)から、営業時間を意識して「6時〜21時」の間を3時間おきにピックアップ
+            const targetHours = [6, 9, 12, 15, 18, 21];
+            
+            targetHours.forEach(hour => {
+                const timeStr = `${hour}:00`;
+                const weather = getWeatherText(data.hourly.weathercode[hour]);
+                const temp = Math.round(data.hourly.temperature_2m[hour]) + "℃";
+                const pop = data.hourly.precipitation_probability[hour] + "%";
+                
+                html += `
+                    <tr>
+                        <td><strong>${timeStr}</strong></td>
+                        <td>${weather}</td>
+                        <td>${temp}</td>
+                        <td>${pop}</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+        } catch (e) {
+            tableBody.innerHTML = `<tr><td colspan="4">データの取得に失敗しました。</td></tr>`;
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('hourlyModal').style.display = 'none';
+    }
+
     async function fetchAllWeather() {
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = `<tr><td colspan="4" class="loading">データを取得中...</td></tr>`;
         let htmlBuffer = "";
 
-        for (const store of stores) {
+        for (let i = 0; i < stores.length; i++) {
+            const store = stores[i];
             const forecast3Days = await fetch3DayWeather(store.lat, store.lon);
             htmlBuffer += `<tr>`;
             htmlBuffer += `
                 <td class="store-info">
-                    <div class="store-title">${store.name.replace('PET THREE ', '')}</div>
-                    <span class="badge">${store.region}</span>
+                    <div class="store-click-zone" onclick="showHourlyWeather(${i})">
+                        <div class="store-title">📍 ${store.name.replace('PET THREE ', '')}</div>
+                    </div>
+                    <div><span class="badge">${store.region}</span></div>
                 </td>
             `;
             
