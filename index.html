@@ -13,6 +13,8 @@
             --border-color: #e2e8f0;
             --rain-bg: #fff5f5;
             --rain-text: #e53e3e;
+            --pop-bg: #ebf8ff; /* 降水確率の背景用の薄い水色 */
+            --pop-text: #2b6cb0; /* 降水確率の文字用の濃い青色 */
         }
 
         body {
@@ -37,14 +39,12 @@
             padding-bottom: 10px;
         }
 
-        /* 🖼️ ロゴとタイトルを綺麗に横並びにする設定 */
         .header-logo-area {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        /* 🎨 ロゴ画像のサイズ調整（縦幅40pxにしてスマホでも崩れないようにしています） */
         .brand-logo {
             height: 40px;
             width: auto;
@@ -243,11 +243,22 @@
             font-size: 13px;
         }
         .hourly-table th, .hourly-table td {
-            padding: 8px;
+            padding: 10px 8px;
             text-align: center;
             border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
         }
         .hourly-table th { background: #f7fafc; }
+
+        /* 🕒 ポップアップ内の降水確率バッジのデザイン */
+        .hourly-pop-badge {
+            display: inline-block;
+            background-color: var(--pop-bg);
+            color: var(--pop-text);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -276,7 +287,8 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                </tbody>
+                <!-- データ自動挿入 -->
+            </tbody>
         </table>
     </div>
 </div>
@@ -295,7 +307,8 @@
                 </tr>
             </thead>
             <tbody id="hourlyTableBody">
-                </tbody>
+                <!-- データ挿入 -->
+            </tbody>
         </table>
     </div>
 </div>
@@ -378,7 +391,8 @@
                         <td><strong>${timeStr}</strong></td>
                         <td>${weather}</td>
                         <td>${temp}</td>
-                        <td>${pop}</td>
+                        <!-- 📊 ここで降水確率に背景色付きのバッジ（クラス名 hourly-pop-badge）を適用しました -->
+                        <td><span class="hourly-pop-badge">${pop}</span></td>
                     </tr>
                 `;
             });
